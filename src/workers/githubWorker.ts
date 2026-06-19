@@ -66,6 +66,38 @@ export const githubWorker = new Worker(
             where: { id: pr.claimId },
             data: { status: "ACCEPTED" }
           });
+
+          // Escrow Payout Logic
+          const bounty = await prisma.bounty.findFirst({
+            where: { claims: { some: { id: pr.claimId } } }
+          });
+
+          if (bounty) {
+            await prisma.bounty.update({
+              where: { id: bounty.id },
+              data: { status: "COMPLETED" }
+            });
+
+            // Find escrow transaction
+            const payment = await prisma.payment.findFirst({
+              where: { payerId: bounty.creatorId, status: "PENDING" },
+              include: { escrowTransaction: true }
+            });
+
+            if (payment && payment.escrowTransaction) {
+              await prisma.escrowTransaction.update({
+                where: { id: payment.escrowTransaction.id },
+                data: { status: "RELEASED" }
+              });
+
+              await prisma.payment.update({
+                where: { id: payment.id },
+                data: { status: "COMPLETED", receiverId: user.id }
+              });
+
+              console.log(`Escrow funds released to user ${user.id} for bounty ${bounty.id}`);
+            }
+          }
         }
       }
     }
