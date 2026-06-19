@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  githubId      String?   @unique
+  role          Role      @default(CONTRIBUTOR)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  organizations Organization[] @relation("OrganizationOwner")
+  repositories  Repository[]   @relation("RepositoryOwner")
+  bounties      Bounty[]       @relation("BountyCreator")
+  claims        Claim[]
+  paymentsMade  Payment[]      @relation("Payer")
+  paymentsRcvd  Payment[]      @relation("Receiver")
+  notifications Notification[]
+  reputation    Reputation?
+  leaderboard   Leaderboard?
+  auditLogs     AuditLog[]
+}
+
+enum Role {
+  MAINTAINER
+  CONTRIBUTOR
+  ADMIN
+}
+
+// NextAuth related models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+
+  owner        User         @relation("OrganizationOwner", fields: [ownerId], references: [id])
+  repositories Repository[]
+}
+
+model Repository {
+  id             String   @id @default(cuid())
+  githubRepoId   String   @unique
+  name           String
+  ownerId        String
+  organizationId String?
+  createdAt      DateTime @default(now())
+
+  owner        User          @relation("RepositoryOwner", fields: [ownerId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  issues       Issue[]
+}
+
+model Issue {
+  id            String     @id @default(cuid())
+  githubIssueId String     @unique
+  title         String
+  body          String?    @db.Text
+  status        String
+  difficulty    Difficulty @default(MEDIUM)
+  repositoryId  String
+
+  repository Repository @relation(fields: [repositoryId], references: [id])
+  bounty     Bounty?
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+model Bounty {
+  id        String       @id @default(cuid())
+  amount    Float
+  status    BountyStatus @default(OPEN)
+  issueId   String       @unique
+  creatorId String
+  createdAt DateTime     @default(now())
+
+  issue   Issue   @relation(fields: [issueId], references: [id])
+  creator User    @relation("BountyCreator", fields: [creatorId], references: [id])
+  claims  Claim[]
+}
+
+enum BountyStatus {
+  OPEN
+  CLAIMED
+  COMPLETED
+  CANCELLED
+}
+
+model Claim {
+  id        String      @id @default(cuid())
+  bountyId  String
+  userId    String
+  status    ClaimStatus @default(PENDING)
+  claimedAt DateTime    @default(now())
+
+  bounty      Bounty        @relation(fields: [bountyId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  pullRequest PullRequest?
+
+  @@unique([bountyId, userId])
+}
+
+enum ClaimStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model PullRequest {
+  id         String   @id @default(cuid())
+  githubPrId String   @unique
+  claimId    String   @unique
+  status     String
+  mergedAt   DateTime?
+
+  claim Claim @relation(fields: [claimId], references: [id])
+}
+
+model Payment {
+  id         String        @id @default(cuid())
+  amount     Float
+  status     PaymentStatus @default(PENDING)
+  payerId    String
+  receiverId String
+  createdAt  DateTime      @default(now())
+
+  payer             User               @relation("Payer", fields: [payerId], references: [id])
+  receiver          User               @relation("Receiver", fields: [receiverId], references: [id])
+  escrowTransaction EscrowTransaction?
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model EscrowTransaction {
+  id        String       @id @default(cuid())
+  amount    Float
+  status    EscrowStatus @default(HELD)
+  paymentId String       @unique
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+}
+
+enum EscrowStatus {
+  HELD
+  RELEASED
+  REFUNDED
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Reputation {
+  id     String @id @default(cuid())
+  userId String @unique
+  score  Int    @default(0)
+  rank   String @default("Beginner")
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Leaderboard {
+  id       String @id @default(cuid())
+  userId   String @unique
+  position Int
+  score    Int
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  userId    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
