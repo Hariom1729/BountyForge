@@ -97,6 +97,32 @@ export const githubWorker = new Worker(
 
               console.log(`Escrow funds released to user ${user.id} for bounty ${bounty.id}`);
             }
+
+            // Award Reputation
+            let points = 50; // Base for merged PR
+            if (bounty.issue.difficulty === "EASY") points += 50;
+            if (bounty.issue.difficulty === "MEDIUM") points += 100;
+            if (bounty.issue.difficulty === "HARD") points += 150;
+            if (bounty.issue.difficulty === "EXPERT") points += 200;
+
+            const rep = await prisma.reputation.upsert({
+              where: { userId: user.id },
+              update: { score: { increment: points } },
+              create: { userId: user.id, score: points, rank: "Beginner" }
+            });
+
+            // Update rank if necessary
+            let rank = "Beginner";
+            if (rep.score > 500) rank = "Intermediate";
+            if (rep.score > 1000) rank = "Advanced";
+            if (rep.score > 5000) rank = "Expert";
+
+            if (rep.rank !== rank) {
+               await prisma.reputation.update({
+                 where: { id: rep.id },
+                 data: { rank }
+               });
+            }
           }
         }
       }
