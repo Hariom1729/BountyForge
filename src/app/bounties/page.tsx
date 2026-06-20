@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -35,7 +36,9 @@ export default async function BountiesPage() {
             Browse and claim open source bounties to earn rewards and reputation.
           </p>
         </div>
-        <Button>Create Bounty</Button>
+        <Button asChild>
+          <Link href="/bounties/create">Create Bounty</Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
