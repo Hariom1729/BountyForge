@@ -4,5 +4,6 @@ config();
 
 import "./ai-analyzer.worker";
 import "./ai-reviewer.worker";
+import "./ai-fraud.worker";
 
 console.log("[Worker] Started background worker processes");

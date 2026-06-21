@@ -24,6 +24,9 @@ export function Navbar() {
             <Link href="/analytics" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Leaderboard
             </Link>
+            <Link href="/enterprise" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Enterprise
+            </Link>
             {session && (
               <>
                 <Link href="/copilot" className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 transition-colors">
