@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { aiIssueAnalyzerQueue } from "@/workers/queues";
 
 export async function POST(req: NextRequest) {
   try {
@@ -68,16 +69,20 @@ export async function POST(req: NextRequest) {
       update: {
         title: issueData.title,
         body: issueData.body || "",
-        status: issueData.state === "open" ? "OPEN" : "CLOSED",
+        status: issueData.state,
+        repositoryId: repository.id,
       },
       create: {
         githubIssueId: issueData.id.toString(),
         title: issueData.title,
         body: issueData.body || "",
-        status: issueData.state === "open" ? "OPEN" : "CLOSED",
+        status: issueData.state,
         repositoryId: repository.id,
       },
     });
+
+    // Enqueue an AI analysis job for the issue
+    await aiIssueAnalyzerQueue.add("analyze-issue", { issueId: issue.id });
 
     return NextResponse.json({
       issueId: issue.id,

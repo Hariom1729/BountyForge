@@ -21,6 +21,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   organizations Organization[] @relation("OrganizationOwner")
+  teamMemberships TeamMember[]
   repositories  Repository[]   @relation("RepositoryOwner")
   bounties      Bounty[]       @relation("BountyCreator")
   claims        Claim[]
@@ -30,15 +31,18 @@ model User {
   reputation    Reputation?
   leaderboard   Leaderboard?
   auditLogs     AuditLog[]
+  userSkills    UserSkill[]
+  jobApplications JobApplication[]
+  fraudScore    FraudScore?
 }
 
 enum Role {
   MAINTAINER
   CONTRIBUTOR
   ADMIN
+  ENTERPRISE
 }
 
-// NextAuth related models
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -81,7 +85,32 @@ model Organization {
   createdAt DateTime @default(now())
 
   owner        User         @relation("OrganizationOwner", fields: [ownerId], references: [id])
+  teams        Team[]
   repositories Repository[]
+  jobPosts     JobPost[]
+}
+
+model Team {
+  id             String   @id @default(cuid())
+  name           String
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  members        TeamMember[]
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      String   @default("MEMBER")
+  joinedAt  DateTime @default(now())
+
+  team      Team     @relation(fields: [teamId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([teamId, userId])
 }
 
 model Repository {
@@ -90,6 +119,7 @@ model Repository {
   name           String
   ownerId        String
   organizationId String?
+  healthScore    Float?   @default(100.0)
   createdAt      DateTime @default(now())
 
   owner        User          @relation("RepositoryOwner", fields: [ownerId], references: [id])
@@ -105,9 +135,17 @@ model Issue {
   status        String
   difficulty    Difficulty @default(MEDIUM)
   repositoryId  String
+  
+  // AI Analyzed Metadata
+  estimatedHours Float?
+  suggestedReward Float?
+  complexityScore Int?
+  aiImplementationPlan String? @db.Text
+  aiAnalyzedAt   DateTime?
 
   repository Repository @relation(fields: [repositoryId], references: [id])
   bounty     Bounty?
+  issueSkills IssueSkill[]
 }
 
 enum Difficulty {
@@ -115,6 +153,39 @@ enum Difficulty {
   MEDIUM
   HARD
   EXPERT
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  category    String?
+  
+  userSkills  UserSkill[]
+  issueSkills IssueSkill[]
+  jobSkills   JobSkill[]
+}
+
+model UserSkill {
+  id        String @id @default(cuid())
+  userId    String
+  skillId   String
+  proficiency Int  @default(1) // 1-10
+
+  user      User  @relation(fields: [userId], references: [id])
+  skill     Skill @relation(fields: [skillId], references: [id])
+
+  @@unique([userId, skillId])
+}
+
+model IssueSkill {
+  id        String @id @default(cuid())
+  issueId   String
+  skillId   String
+
+  issue     Issue @relation(fields: [issueId], references: [id])
+  skill     Skill @relation(fields: [skillId], references: [id])
+
+  @@unique([issueId, skillId])
 }
 
 model Bounty {
@@ -142,6 +213,7 @@ model Claim {
   bountyId  String
   userId    String
   status    ClaimStatus @default(PENDING)
+  matchScore Float?     // AI Match Score
   claimedAt DateTime    @default(now())
 
   bounty      Bounty        @relation(fields: [bountyId], references: [id])
@@ -164,6 +236,12 @@ model PullRequest {
   claimId    String   @unique
   status     String
   mergedAt   DateTime?
+  
+  // AI Code Review
+  aiReviewSummary String? @db.Text
+  securityScore   Float?
+  qualityScore    Float?
+  aiReviewedAt    DateTime?
 
   claim Claim @relation(fields: [claimId], references: [id])
 }
@@ -214,10 +292,12 @@ model Notification {
 }
 
 model Reputation {
-  id     String @id @default(cuid())
-  userId String @unique
-  score  Int    @default(0)
-  rank   String @default("Beginner")
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  score     Int      @default(0)
+  rank      String   @default("Bronze Developer")
+  badges    String[] // e.g. ["Bug Hunter", "AI Engineer"]
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -239,4 +319,62 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model FraudScore {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  score     Float    @default(0.0) // 0-100, >80 blocks user
+  reasons   String[]
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model JobPost {
+  id             String   @id @default(cuid())
+  organizationId String
+  title          String
+  description    String   @db.Text
+  type           JobType
+  location       String?
+  salaryMin      Float?
+  salaryMax      Float?
+  status         String   @default("OPEN")
+  createdAt      DateTime @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  jobSkills      JobSkill[]
+  applications   JobApplication[]
+}
+
+enum JobType {
+  FULL_TIME
+  FREELANCE
+  INTERNSHIP
+}
+
+model JobSkill {
+  id        String @id @default(cuid())
+  jobPostId String
+  skillId   String
+
+  jobPost   JobPost @relation(fields: [jobPostId], references: [id])
+  skill     Skill   @relation(fields: [skillId], references: [id])
+
+  @@unique([jobPostId, skillId])
+}
+
+model JobApplication {
+  id        String   @id @default(cuid())
+  jobPostId String
+  userId    String
+  status    String   @default("APPLIED")
+  aiMatchScore Float?
+  createdAt DateTime @default(now())
+
+  jobPost   JobPost @relation(fields: [jobPostId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@unique([jobPostId, userId])
 }
