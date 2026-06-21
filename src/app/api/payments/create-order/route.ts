@@ -12,16 +12,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { amount, bountyId } = await req.json();
+    const { amount, issueId } = await req.json();
 
-    if (!amount || !bountyId) {
-      return NextResponse.json({ error: "Missing amount or bountyId" }, { status: 400 });
+    const parsedAmount = parseFloat(amount);
+
+    if (!parsedAmount || isNaN(parsedAmount) || !issueId) {
+      return NextResponse.json({ error: "Missing or invalid amount or issueId" }, { status: 400 });
     }
 
     const options = {
-      amount: amount * 100, // Razorpay works in subunits (paise)
+      amount: parsedAmount * 100, // Razorpay works in subunits (paise)
       currency: "USD",
-      receipt: `receipt_bounty_${bountyId}`,
+      receipt: `receipt_issue_${issueId}`,
       payment_capture: 1, // Auto capture
     };
 
@@ -30,7 +32,7 @@ export async function POST(req: NextRequest) {
     // Save initial pending payment
     const payment = await prisma.payment.create({
       data: {
-        amount: amount,
+        amount: parsedAmount,
         status: "PENDING",
         payerId: session.user.id,
         receiverId: session.user.id, // Temporary until claimed
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.escrowTransaction.create({
       data: {
-        amount: amount,
+        amount: parsedAmount,
         status: "HELD",
         paymentId: payment.id,
       },

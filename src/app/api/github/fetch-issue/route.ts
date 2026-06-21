@@ -50,13 +50,12 @@ export async function POST(req: NextRequest) {
     // Upsert Repository
     const repository = await prisma.repository.upsert({
       where: {
-        githubId: issueData.repository_url.split('/').pop() || `${owner}/${repo}`, // Approximate, normally you'd fetch repo ID
+        githubRepoId: issueData.repository_url.split('/').pop() || `${owner}/${repo}`, // Approximate, normally you'd fetch repo ID
       },
       update: {},
       create: {
-        githubId: issueData.repository_url.split('/').pop() || `${owner}/${repo}`,
+        githubRepoId: issueData.repository_url.split('/').pop() || `${owner}/${repo}`,
         name: `${owner}/${repo}`,
-        url: `https://github.com/${owner}/${repo}`,
         ownerId: session.user.id, // Assign the maintainer as the owner for now
       },
     });
@@ -69,15 +68,13 @@ export async function POST(req: NextRequest) {
       update: {
         title: issueData.title,
         body: issueData.body || "",
-        state: issueData.state === "open" ? "OPEN" : "CLOSED",
+        status: issueData.state === "open" ? "OPEN" : "CLOSED",
       },
       create: {
         githubIssueId: issueData.id.toString(),
-        number: issueData.number,
         title: issueData.title,
         body: issueData.body || "",
-        state: issueData.state === "open" ? "OPEN" : "CLOSED",
-        url: issueData.html_url,
+        status: issueData.state === "open" ? "OPEN" : "CLOSED",
         repositoryId: repository.id,
       },
     });
@@ -86,7 +83,7 @@ export async function POST(req: NextRequest) {
       issueId: issue.id,
       title: issue.title,
       repository: repository.name,
-      number: issue.number,
+      number: issueData.number,
     }, { status: 200 });
 
   } catch (error) {

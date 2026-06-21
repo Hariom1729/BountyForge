@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 export const dynamic = 'force-dynamic';
 
@@ -36,9 +36,7 @@ export default async function BountiesPage() {
             Browse and claim open source bounties to earn rewards and reputation.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/bounties/create">Create Bounty</Link>
-        </Button>
+        <Link href="/bounties/create" className={buttonVariants()}>Create Bounty</Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -78,9 +76,9 @@ export default async function BountiesPage() {
                   By {bounty.creator.name}
                 </span>
               </div>
-              <Button variant="outline" size="sm">
+              <Link href={`/bounties/${bounty.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
                 View Details
-              </Button>
+              </Link>
             </CardFooter>
           </Card>
         ))}

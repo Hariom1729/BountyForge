@@ -1,0 +1,137 @@
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { notFound } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ClaimButton } from "./ClaimButton";
+
+export const dynamic = 'force-dynamic';
+
+export default async function BountyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  const resolvedParams = await params;
+  const bountyId = resolvedParams.id;
+
+  const bounty = await prisma.bounty.findUnique({
+    where: { id: bountyId },
+    include: {
+      issue: {
+        include: { repository: true },
+      },
+      creator: true,
+      claims: {
+        include: { user: true },
+      },
+    },
+  });
+
+  if (!bounty) {
+    notFound();
+  }
+
+  const hasClaimed = session?.user?.id 
+    ? bounty.claims.some(claim => claim.userId === session.user.id)
+    : false;
+
+  return (
+    <main className="container mx-auto py-10 px-4 max-w-4xl">
+      <div className="grid md:grid-cols-3 gap-8">
+        
+        {/* Main Content */}
+        <div className="md:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant={bounty.status === "OPEN" ? "default" : "secondary"}>
+                  {bounty.status}
+                </Badge>
+                <Badge variant="outline">{bounty.issue.difficulty}</Badge>
+              </div>
+              <CardTitle className="text-3xl font-bold">{bounty.issue.title}</CardTitle>
+              <CardDescription className="text-lg mt-2">
+                {bounty.issue.repository.name} • Issue #{bounty.issue.githubIssueId}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="prose dark:prose-invert max-w-none">
+                {bounty.issue.body ? (
+                  <p className="whitespace-pre-wrap">{bounty.issue.body}</p>
+                ) : (
+                  <p className="text-muted-foreground italic">No description provided for this issue.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Bounty Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <p className="text-sm text-muted-foreground">Reward</p>
+                <p className="text-4xl font-bold text-green-600 dark:text-green-400">${bounty.amount}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Funded by</p>
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarImage src={bounty.creator.image || undefined} />
+                    <AvatarFallback>{bounty.creator.name?.charAt(0) || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{bounty.creator.name}</p>
+                    <p className="text-xs text-muted-foreground">Maintainer</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t">
+                {session ? (
+                  <ClaimButton bountyId={bounty.id} hasClaimed={hasClaimed} status={bounty.status} />
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center">Sign in to claim this bounty.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Claims ({bounty.claims.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {bounty.claims.length > 0 ? (
+                <div className="space-y-4">
+                  {bounty.claims.map(claim => (
+                    <div key={claim.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={claim.user.image || undefined} />
+                          <AvatarFallback>{claim.user.name?.charAt(0) || "U"}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">{claim.user.name}</span>
+                      </div>
+                      <Badge variant={claim.status === "PENDING" ? "outline" : "default"} className="text-xs">
+                        {claim.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No one has claimed this bounty yet.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+      </div>
+    </main>
+  );
+}

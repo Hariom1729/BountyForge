@@ -51,54 +51,19 @@ export default function CreateBountyPage() {
     setError("");
 
     try {
-      // 1. Create Razorpay Order
-      const orderRes = await fetch("/api/payments/create-order", {
+      // DEMO MODE: Bypass Razorpay for testing purposes and directly create the bounty
+      const bountyRes = await fetch("/api/bounties", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, issueId: issue.id }),
+        body: JSON.stringify({ amount: parseFloat(amount), issueId: issue.id }),
       });
-      const orderData = await orderRes.json();
-      if (!orderRes.ok) throw new Error(orderData.error || "Failed to create order");
-
-      // 2. Open Razorpay Checkout
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder",
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: "BountyForge",
-        description: `Fund bounty for ${issue.repository}#${issue.number}`,
-        order_id: orderData.id,
-        handler: async function (response: any) {
-          // 3. On success, create the bounty in our DB
-          try {
-            const bountyRes = await fetch("/api/bounties", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ amount: parseFloat(amount), issueId: issue.id }),
-            });
-            if (!bountyRes.ok) throw new Error("Failed to create bounty record");
-            
-            // Redirect to dashboard
-            router.push("/bounties");
-            router.refresh();
-          } catch (err: any) {
-            alert("Error creating bounty: " + err.message);
-          }
-        },
-        prefill: {
-          name: session?.user?.name || "",
-          email: session?.user?.email || "",
-        },
-        theme: {
-          color: "#16a34a",
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
-        alert("Payment Failed: " + response.error.description);
-      });
-      rzp.open();
+      
+      const data = await bountyRes.json();
+      if (!bountyRes.ok) throw new Error(data.error || "Failed to create bounty record");
+      
+      // Redirect to dashboard
+      router.push("/bounties");
+      router.refresh();
 
     } catch (err: any) {
       setError(err.message);
