@@ -3,5 +3,6 @@ import { config } from "dotenv";
 config();
 
 import "./ai-analyzer.worker";
+import "./ai-reviewer.worker";
 
 console.log("[Worker] Started background worker processes");

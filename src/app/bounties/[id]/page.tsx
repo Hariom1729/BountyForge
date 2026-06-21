@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { GitPullRequest } from "lucide-react";
 import { ClaimButton } from "./ClaimButton";
 
 export const dynamic = 'force-dynamic';
@@ -167,6 +169,54 @@ export default async function BountyDetailsPage({ params }: { params: Promise<{ 
               ) : (
                 <p className="text-sm text-muted-foreground">No one has claimed this bounty yet.</p>
               )}
+              
+              <div className="space-y-3 pt-4 border-t border-dashed">
+                <Button className="w-full gap-2">
+                  <GitPullRequest className="w-4 h-4" />
+                  Claim Bounty
+                </Button>
+                
+                {/* Simulated PR Button for Demo */}
+                <form action={async () => {
+                  "use server"
+                  const { getServerSession } = await import("next-auth");
+                  const { authOptions } = await import("@/lib/auth");
+                  const { prisma } = await import("@/lib/prisma");
+                  const { aiCodeReviewerQueue } = await import("@/workers/queues");
+                  const { revalidatePath } = await import("next/cache");
+
+                  const session = await getServerSession(authOptions);
+                  if (!session?.user) return;
+
+                  let claim = await prisma.claim.findUnique({
+                    where: { bountyId_userId: { bountyId: bounty.id, userId: session.user.id } },
+                  });
+
+                  if (!claim) {
+                    claim = await prisma.claim.create({
+                      data: { bountyId: bounty.id, userId: session.user.id, status: "PENDING" },
+                    });
+                  }
+
+                  let pr = await prisma.pullRequest.findUnique({ where: { claimId: claim.id } });
+                  if (!pr) {
+                    pr = await prisma.pullRequest.create({
+                      data: { githubPrId: `pr_${Math.random().toString(36).substring(7)}`, claimId: claim.id, status: "OPEN" },
+                    });
+                  }
+
+                  await aiCodeReviewerQueue.add("review-code", {
+                    pullRequestId: pr.id,
+                    codeDiff: "diff --git a/file.js b/file.js\n+ const fix = true;\n- const bug = false;"
+                  });
+                  
+                  revalidatePath("/copilot");
+                }}>
+                  <Button variant="secondary" className="w-full gap-2 border-purple-500 text-purple-700 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400">
+                    ✨ Simulate AI Code Review
+                  </Button>
+                </form>
+              </div>
             </CardContent>
           </Card>
         </div>

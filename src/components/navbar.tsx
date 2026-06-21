@@ -18,9 +18,22 @@ export function Navbar() {
             <Link href="/bounties" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Explore Bounties
             </Link>
+            <Link href="/jobs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Jobs
+            </Link>
             <Link href="/analytics" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Leaderboard
             </Link>
+            {session && (
+              <>
+                <Link href="/copilot" className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 transition-colors">
+                  AI Copilot
+                </Link>
+                <Link href="/bounties/create" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  Post Bounty
+                </Link>
+              </>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-4">
