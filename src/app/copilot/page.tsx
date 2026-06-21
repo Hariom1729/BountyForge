@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Sparkles, BrainCircuit, Target, Code, TrendingUp, Zap } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -30,128 +31,86 @@ export default async function CopilotPage() {
     redirect("/");
   }
 
-  // Get some open bounties for recommendations
-  const recommendedBounties = await prisma.bounty.findMany({
-    where: { status: "OPEN" },
-    include: { issue: { include: { repository: true } } },
-    take: 3,
-  });
-
-  // Get some jobs
-  const recommendedJobs = await prisma.jobPost.findMany({
-    where: { status: "OPEN" },
-    include: { organization: true },
-    take: 2,
-  });
-
   return (
-    <main className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="flex justify-between items-center mb-8">
+    <div className="p-8 max-w-6xl mx-auto space-y-8">
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center">
+          <BrainCircuit className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-600">
-            AI Career Copilot
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Your personalized guide to growing your open source career.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">AI Career Copilot</h1>
+          <p className="text-muted-foreground mt-1">Your personal mentor analyzing your code to help you grow and earn more.</p>
         </div>
-        <Button variant="outline" className="gap-2">
-          📄 Generate OSS Resume
-        </Button>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8">
-        
-        {/* Left Column: Stats & PR Reviews */}
-        <div className="space-y-6">
-          <Card className="border-purple-500/30 bg-purple-50/30 dark:bg-purple-900/10">
-            <CardHeader>
-              <CardTitle>Your Rank</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                {user.reputation?.rank || "Bronze Developer"}
+      <div className="grid md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2 border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-blue-500/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-purple-500"/> Recommended Growth Path</CardTitle>
+            <CardDescription>Based on your recent PRs, our AI suggests focusing on these areas to increase your earning potential.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex gap-4 items-start p-4 bg-background rounded-lg border">
+              <Code className="w-8 h-8 text-blue-500 shrink-0 mt-1" />
+              <div>
+                <h4 className="font-bold text-lg">Master Rust Concurrency</h4>
+                <p className="text-muted-foreground mt-1 mb-3">You've been claiming Python backend tasks. Rust bounties currently pay 40% more on average. Your background in concurrent systems makes this a smooth transition.</p>
+                <div className="flex gap-2">
+                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700">View Learning Path</Button>
+                  <Button size="sm" variant="outline">Find Beginner Rust Bounties</Button>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                {user.reputation?.score || 0} Total XP
-              </p>
+            </div>
+
+            <div className="flex gap-4 items-start p-4 bg-background rounded-lg border">
+              <Zap className="w-8 h-8 text-yellow-500 shrink-0 mt-1" />
+              <div>
+                <h4 className="font-bold text-lg">Improve Test Coverage</h4>
+                <p className="text-muted-foreground mt-1 mb-3">Your last 3 PRs lacked unit tests, reducing your Reliability Score. Writing tests will boost your Reputation Rank from Bronze to Silver.</p>
+                <Button size="sm" variant="outline">Review Testing Best Practices</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Target className="w-5 h-5 text-blue-500"/> Next Goal</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <div className="w-24 h-24 mx-auto border-4 border-muted rounded-full flex items-center justify-center mb-4 relative">
+                <span className="font-bold text-xl">Silver</span>
+                <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="46" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-blue-500" strokeDasharray="289" strokeDashoffset="144" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium">50 Reputation Points to Silver Rank</p>
+              <p className="text-xs text-muted-foreground mt-2">Unlocks higher-paying exclusive bounties.</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Recent AI Code Reviews</CardTitle>
-              <CardDescription>Automated feedback on your PRs</CardDescription>
+              <CardTitle className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-green-500"/> Skill Market Trends</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {user.claims.filter(c => c.pullRequest).length > 0 ? (
-                user.claims.filter(c => c.pullRequest).slice(0, 3).map((claim) => (
-                  <div key={claim.id} className="p-3 bg-muted/30 rounded-lg border">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">PR: {claim.pullRequest?.githubPrId}</span>
-                      <Badge variant={claim.pullRequest?.securityScore && claim.pullRequest.securityScore > 80 ? "default" : "destructive"}>
-                        Security: {claim.pullRequest?.securityScore || "N/A"}/100
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {claim.pullRequest?.aiReviewSummary || "Pending AI Review..."}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground italic">No PRs reviewed yet. Submit code to get AI feedback!</p>
-              )}
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium">Smart Contracts</span>
+                <span className="text-green-500 font-bold">+120%</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium">React Native</span>
+                <span className="text-green-500 font-bold">+45%</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium">Data Engineering</span>
+                <span className="text-green-500 font-bold">+20%</span>
+              </div>
             </CardContent>
           </Card>
         </div>
-
-        {/* Right Column: Recommendations */}
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recommended Bounties</CardTitle>
-              <CardDescription>Hand-picked for your skill level.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recommendedBounties.map(bounty => (
-                <div key={bounty.id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div>
-                    <h4 className="font-semibold text-purple-600 dark:text-purple-400">
-                      ${bounty.amount} - {bounty.issue.title}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">{bounty.issue.repository.name}</p>
-                  </div>
-                  <Link href={`/bounties/${bounty.id}`}>
-                    <Button size="sm">View Bounty</Button>
-                  </Link>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recommended Full-Time Roles</CardTitle>
-              <CardDescription>Companies looking for your exact OSS experience.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recommendedJobs.map(job => (
-                <div key={job.id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div>
-                    <h4 className="font-semibold">{job.title}</h4>
-                    <p className="text-sm text-muted-foreground">{job.organization.name}</p>
-                  </div>
-                  <Link href={`/jobs`}>
-                    <Button size="sm" variant="outline">Apply Now</Button>
-                  </Link>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-        </div>
-
       </div>
-    </main>
+    </div>
   );
 }

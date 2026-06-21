@@ -14,6 +14,9 @@ model User {
   emailVerified DateTime?
   image         String?
   githubId      String?   @unique
+  githubUsername String?
+  googleId      String?   @unique
+  githubConnected Boolean @default(false)
   role          Role      @default(CONTRIBUTOR)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

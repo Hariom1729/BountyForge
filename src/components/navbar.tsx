@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -24,19 +25,14 @@ export function Navbar() {
             <Link href="/analytics" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Leaderboard
             </Link>
-            <Link href="/enterprise" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Enterprise
-            </Link>
-            {session && (
-              <>
-                <Link href="/copilot" className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 transition-colors">
-                  AI Copilot
-                </Link>
-                <Link href="/bounties/create" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                  Post Bounty
-                </Link>
-              </>
-            )}
+            {session ? (
+              <Link 
+                href={session.user.role === "MAINTAINER" || session.user.role === "ENTERPRISE" ? "/maintainer/dashboard" : "/contributor/dashboard"} 
+                className="text-sm font-medium text-foreground hover:text-purple-600 transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : null}
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -50,9 +46,14 @@ export function Navbar() {
               </Button>
             </>
           ) : (
-            <Button size="sm" onClick={() => signIn("github")}>
-              Login with GitHub
-            </Button>
+            <div className="flex items-center gap-2">
+              <Link href="/auth/signin" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
+                Sign In
+              </Link>
+              <Link href="/auth/signin" className={cn(buttonVariants({ size: "sm" }))}>
+                Sign Up
+              </Link>
+            </div>
           )}
         </div>
       </div>

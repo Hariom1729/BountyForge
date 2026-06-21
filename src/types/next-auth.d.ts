@@ -4,13 +4,15 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      githubId?: string | null;
-      role?: string;
+      role: string;
+      githubId?: string;
+      githubConnected: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
-    githubId?: string | null;
-    role?: string;
+    id: string;
+    role: string;
+    githubConnected: boolean;
   }
 }
