@@ -78,7 +78,7 @@ Output ONLY a valid JSON object with these exact keys:
       });
     }
   },
-  { connection: redisConnection }
+  { connection: redisConnection as any }
 );
 
 aiAnalyzerWorker.on("completed", (job) => {

@@ -69,7 +69,8 @@ export const githubWorker = new Worker(
 
           // Escrow Payout Logic
           const bounty = await prisma.bounty.findFirst({
-            where: { claims: { some: { id: pr.claimId } } }
+            where: { claims: { some: { id: pr.claimId } } },
+            include: { issue: true }
           });
 
           if (bounty) {
@@ -128,7 +129,7 @@ export const githubWorker = new Worker(
       }
     }
   },
-  { connection }
+  { connection: connection as any }
 );
 
 export const issueWorker = new Worker(
@@ -142,5 +143,5 @@ export const issueWorker = new Worker(
       // Sync issues logic here using octokit
     }
   },
-  { connection }
+  { connection: connection as any }
 );

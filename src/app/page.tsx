@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Code, Coins, ShieldCheck, Bot, Briefcase, Zap, TerminalSquare, Search, Award } from "lucide-react";
+import { ArrowRight, Code, Coins, ShieldCheck, Bot, Briefcase, Zap, TerminalSquare, Search, Award, GitBranch } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function Home() {
@@ -33,8 +33,8 @@ export default function Home() {
           <Link href="/bounties" className={cn(buttonVariants({ size: "lg" }), "gap-2 text-lg h-14 px-8 shadow-lg shadow-purple-500/20")}>
             Explore Open Bounties <ArrowRight className="w-5 h-5" />
           </Link>
-          <Link href="/auth/signin" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "gap-2 text-lg h-14 px-8 bg-background/50 backdrop-blur-sm")}>
-            Sign Up Now
+          <Link href="/signin" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "gap-2 text-lg h-14 px-8 bg-background/50 backdrop-blur-sm")}>
+            <GitBranch className="w-5 h-5" /> Sign In
           </Link>
         </div>
 

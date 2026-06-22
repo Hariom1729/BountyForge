@@ -15,7 +15,7 @@ export default async function EnterpriseDashboard() {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user) {
-    redirect("/api/auth/signin");
+    redirect("/signin");
   }
 
   // Get active bounties for the organization (assuming the logged-in user is the org admin)

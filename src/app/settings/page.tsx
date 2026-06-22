@@ -4,7 +4,7 @@ import { useSession, signIn } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Github, Mail, Shield } from "lucide-react";
+import { GitBranch, Mail, Shield } from "lucide-react";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -50,7 +50,7 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-4">
-              <Github className="w-6 h-6" />
+              <GitBranch className="w-6 h-6" />
               <div>
                 <p className="font-medium flex items-center gap-2">
                   GitHub

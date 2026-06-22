@@ -93,7 +93,7 @@ Output ONLY a valid JSON object with these exact keys:
       await addReputationPoints(pr.claim.userId, 100, `Completed bounty: ${pr.claim.bounty.issue.title}`);
     }
   },
-  { connection: redisConnection }
+  { connection: redisConnection as any }
 );
 
 aiReviewerWorker.on("completed", (job) => {

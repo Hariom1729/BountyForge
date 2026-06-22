@@ -14,7 +14,7 @@ export default async function CopilotPage() {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user) {
-    redirect("/api/auth/signin");
+    redirect("/signin");
   }
 
   const user = await prisma.user.findUnique({

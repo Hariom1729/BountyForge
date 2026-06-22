@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
     
     // Not logged in
     if (!token) {
-      return NextResponse.redirect(new URL("/api/auth/signin", req.url));
+      return NextResponse.redirect(new URL("/signin", req.url));
     }
 
     const role = token.role as string;
@@ -27,6 +27,11 @@ export async function middleware(req: NextRequest) {
     }
 
     // Role Enforcement
+    if (role === "GUEST") {
+      // Guests can preview everything, no redirects needed based on role prefix
+      return NextResponse.next();
+    }
+
     if (pathname.startsWith("/maintainer") && role !== "MAINTAINER" && role !== "ENTERPRISE") {
       return NextResponse.redirect(new URL("/contributor/dashboard", req.url));
     }
@@ -35,6 +40,8 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/maintainer/dashboard", req.url));
     }
   }
+
+  // Protect /guest routes from non-guests if needed? Actually we don't need to.
 
   return NextResponse.next();
 }

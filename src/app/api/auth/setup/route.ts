@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   
   if (!session || !session.user) {
-    return NextResponse.redirect(new URL("/auth/signin", request.url));
+    return NextResponse.redirect(new URL("/signin", request.url));
   }
 
   const { searchParams } = new URL(request.url);
@@ -32,6 +32,9 @@ export async function GET(request: Request) {
   const dbUser = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (dbUser?.role === "MAINTAINER") {
     return NextResponse.redirect(new URL("/maintainer/dashboard", request.url));
+  }
+  if (dbUser?.role === "GUEST") {
+    return NextResponse.redirect(new URL("/guest/dashboard", request.url));
   }
   return NextResponse.redirect(new URL("/contributor/dashboard", request.url));
 }

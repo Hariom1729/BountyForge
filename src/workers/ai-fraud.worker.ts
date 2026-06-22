@@ -49,11 +49,10 @@ Output ONLY a valid JSON object with these exact keys:
 
       const analysis = JSON.parse(responseContent);
 
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          fraudScore: analysis.fraudScore,
-        },
+      await prisma.fraudScore.upsert({
+        where: { userId },
+        update: { score: parseFloat(analysis.fraudScore) },
+        create: { userId, score: parseFloat(analysis.fraudScore) }
       });
 
       console.log(`[AI Fraud Worker] Successfully analyzed user ${userId}. Score: ${analysis.fraudScore}`);
@@ -62,15 +61,15 @@ Output ONLY a valid JSON object with these exact keys:
       
       // Fallback for Demo
       console.log(`[AI Fraud Worker] Using Mock AI Data...`);
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          fraudScore: Math.floor(Math.random() * 90) + 10, // Mock random score between 10 and 100
-        },
+      const mockScore = Math.floor(Math.random() * 90) + 10;
+      await prisma.fraudScore.upsert({
+        where: { userId },
+        update: { score: mockScore },
+        create: { userId, score: mockScore }
       });
     }
   },
-  { connection: redisConnection }
+  { connection: redisConnection as any }
 );
 
 aiFraudWorker.on("completed", (job) => {

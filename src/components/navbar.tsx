@@ -5,8 +5,20 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { usePathname } from "next/navigation";
+
 export function Navbar() {
   const { data: session } = useSession();
+  const pathname = usePathname();
+
+  const isDashboard = 
+    pathname.startsWith("/maintainer") || 
+    pathname.startsWith("/contributor") || 
+    pathname.startsWith("/guest") || 
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/onboarding");
+
+  if (isDashboard) return null;
 
   return (
     <nav className="border-b bg-background sticky top-0 z-50">
@@ -47,10 +59,10 @@ export function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <Link href="/auth/signin" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
+              <Link href="/signin" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
                 Sign In
               </Link>
-              <Link href="/auth/signin" className={cn(buttonVariants({ size: "sm" }))}>
+              <Link href="/signin" className={cn(buttonVariants({ size: "sm" }))}>
                 Sign Up
               </Link>
             </div>

@@ -46,15 +46,15 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const role = credentials?.role === "MAINTAINER" ? "MAINTAINER" : "CONTRIBUTOR";
           const randomId = Math.random().toString(36).substring(7);
           
           const guestUser = await prisma.user.create({
             data: {
-              name: `Guest ${role}`,
+              name: `Guest Explorer`,
               email: `guest_${randomId}@example.com`,
-              role: role as "MAINTAINER" | "CONTRIBUTOR",
+              role: "GUEST",
               githubConnected: false,
+              guestMode: true,
             }
           });
           
@@ -73,12 +73,14 @@ export const authOptions: NextAuthOptions = {
         // Fetch real role and github connected status from DB
         const dbUser = await prisma.user.findUnique({
           where: { id: session.user.id },
-          select: { githubId: true, role: true, githubConnected: true },
+          select: { githubId: true, role: true, githubConnected: true, guestMode: true },
         });
         if (dbUser) {
-          session.user.githubId = dbUser.githubId;
+          session.user.githubId = dbUser.githubId || undefined;
           session.user.role = dbUser.role;
           session.user.githubConnected = dbUser.githubConnected;
+          // @ts-ignore
+          session.user.guestMode = dbUser.guestMode;
         }
       }
       return session;
@@ -89,7 +91,21 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         // @ts-ignore
         token.githubConnected = user.githubConnected;
+        // @ts-ignore
+        token.guestMode = user.guestMode;
       }
+      
+      // Fetch latest role from DB to ensure JWT token matches actual state (prevent role update lag)
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+        }
+      }
+
       if (trigger === "update" && session?.role) {
         token.role = session.role;
       }
@@ -100,6 +116,6 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/signin",
   },
 };

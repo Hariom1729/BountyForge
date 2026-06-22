@@ -5,5 +5,5 @@ const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379"
   maxRetriesPerRequest: null,
 });
 
-export const githubSyncQueue = new Queue("github-sync", { connection });
-export const issueSyncQueue = new Queue("issue-sync", { connection });
+export const githubSyncQueue = new Queue("github-sync", { connection: connection as any });
+export const issueSyncQueue = new Queue("issue-sync", { connection: connection as any });
