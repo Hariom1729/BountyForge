@@ -20,6 +20,7 @@ export const authOptions: NextAuthOptions = {
           googleId: profile.sub,
           githubConnected: false,
           role: "CONTRIBUTOR",
+          authProvider: "GOOGLE",
         };
       },
     }),
@@ -36,6 +37,7 @@ export const authOptions: NextAuthOptions = {
           githubUsername: profile.login,
           githubConnected: true,
           role: "CONTRIBUTOR", // Default until onboarding
+          authProvider: "GITHUB",
         };
       },
     }),
@@ -55,6 +57,7 @@ export const authOptions: NextAuthOptions = {
               role: "GUEST",
               githubConnected: false,
               guestMode: true,
+              authProvider: "GUEST_SESSION",
             }
           });
           

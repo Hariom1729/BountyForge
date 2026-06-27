@@ -6,8 +6,23 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
 
-  // Protect internal routes
-  if (pathname.startsWith("/maintainer") || pathname.startsWith("/contributor") || pathname.startsWith("/onboarding")) {
+  // 1. If authenticated and accessing sign-in, bypass to dashboard
+  if (pathname.startsWith("/signin")) {
+    if (token) {
+      const role = token.role as string;
+      if (role === "MAINTAINER" || role === "ENTERPRISE") {
+        return NextResponse.redirect(new URL("/maintainer/dashboard", req.url));
+      } else if (role === "GUEST") {
+        return NextResponse.redirect(new URL("/guest/dashboard", req.url));
+      } else {
+        return NextResponse.redirect(new URL("/contributor/dashboard", req.url));
+      }
+    }
+    return NextResponse.next();
+  }
+
+  // 2. Protect internal routes
+  if (pathname.startsWith("/maintainer") || pathname.startsWith("/contributor") || pathname.startsWith("/onboarding") || pathname.startsWith("/guest")) {
     
     // Not logged in
     if (!token) {
@@ -16,22 +31,16 @@ export async function middleware(req: NextRequest) {
 
     const role = token.role as string;
 
-    // We use a custom flag or check if role exists to determine onboarding.
-    // If the role is totally missing, force onboarding. 
-    // In our case, the default role is "CONTRIBUTOR" temporarily from GitHub, 
-    // but we can assume onboarding is required if we track an 'onboarded' flag.
-    // For simplicity right now, we'll just check if they are trying to access the wrong role's dashboard.
-
     if (pathname.startsWith("/onboarding")) {
       return NextResponse.next();
     }
 
-    // Role Enforcement
+    // Guests can preview guest dashboard and optionally maintainer/contributor pages
     if (role === "GUEST") {
-      // Guests can preview everything, no redirects needed based on role prefix
       return NextResponse.next();
     }
 
+    // Role boundaries enforcement
     if (pathname.startsWith("/maintainer") && role !== "MAINTAINER" && role !== "ENTERPRISE") {
       return NextResponse.redirect(new URL("/contributor/dashboard", req.url));
     }
@@ -41,15 +50,15 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Protect /guest routes from non-guests if needed? Actually we don't need to.
-
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
+    "/signin",
     "/maintainer/:path*",
     "/contributor/:path*",
-    "/onboarding/:path*"
+    "/onboarding/:path*",
+    "/guest/:path*"
   ],
 };
