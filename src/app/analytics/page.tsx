@@ -26,74 +26,76 @@ export default async function AnalyticsPage() {
   });
 
   return (
-    <main className="container mx-auto py-10 px-4 max-w-6xl">
-      <h1 className="text-4xl font-bold tracking-tight mb-8">Platform Analytics</h1>
+    <main className="container mx-auto py-10 px-4 max-w-6xl relative">
+      <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-10 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500 bg-clip-text text-transparent">Platform Analytics</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <Card>
+        <Card className="glass-card border-white/10 rounded-2xl shadow-xl glow-hover">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Bounties</CardTitle>
+            <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Total Bounties</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalBounties}</div>
+            <div className="text-4xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{totalBounties}</div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="glass-card border-white/10 rounded-2xl shadow-xl glow-hover">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
+            <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{completedBounties}</div>
+            <div className="text-4xl font-black bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{completedBounties}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card border-white/10 rounded-2xl shadow-xl glow-hover">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Volume</CardTitle>
+            <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Total Volume</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">${totalRevenue._sum.amount || 0}</div>
+            <div className="text-4xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">${totalRevenue._sum.amount || 0}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card border-white/10 rounded-2xl shadow-xl glow-hover">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Contributors</CardTitle>
+            <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Active Contributors</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{activeContributors}</div>
+            <div className="text-4xl font-black bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">{activeContributors}</div>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Contributors (Leaderboard)</CardTitle>
+        <Card className="glass-card border border-white/10 rounded-2xl shadow-xl col-span-full">
+          <CardHeader className="border-b border-white/5 pb-4">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Top Contributors (Leaderboard)</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
               {leaderboard.map((entry, idx) => (
-                <div key={entry.id} className="flex items-center justify-between">
+                <div key={entry.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 transition-all duration-200">
                   <div className="flex items-center gap-4">
-                    <span className="font-bold text-muted-foreground w-4">{idx + 1}</span>
-                    <Avatar className="h-10 w-10">
+                    <span className="font-extrabold text-lg text-muted-foreground w-6 text-center">
+                      {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
+                    </span>
+                    <Avatar className="h-10 w-10 border border-white/10 shadow-sm">
                       <AvatarImage src={entry.user.image || undefined} />
-                      <AvatarFallback>{entry.user.name?.charAt(0) || "U"}</AvatarFallback>
+                      <AvatarFallback className="font-bold bg-purple-500/10 text-purple-400">{entry.user.name?.charAt(0) || "U"}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{entry.user.name}</p>
-                      <p className="text-xs text-muted-foreground">{entry.rank}</p>
+                      <p className="font-bold text-foreground text-sm md:text-base">{entry.user.name}</p>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{entry.rank}</p>
                     </div>
                   </div>
-                  <div className="font-bold text-green-600 dark:text-green-400">
+                  <div className="font-black text-lg bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
                     {entry.score} pts
                   </div>
                 </div>
               ))}
               {leaderboard.length === 0 && (
-                <div className="text-center text-muted-foreground">No data available yet.</div>
+                <div className="text-center text-muted-foreground py-10 font-medium">No data available yet.</div>
               )}
             </div>
           </CardContent>
