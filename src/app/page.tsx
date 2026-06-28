@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { ArrowRight, Code, Coins, ShieldCheck, Bot, Briefcase, Zap, TerminalSquare, Search, Award, GitBranch } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DottedSurface } from "@/components/ui/dotted-surface";
+import { FloatingSphere } from "@/components/ui/floating-sphere";
 
 export default function Home() {
   return (
@@ -12,37 +13,46 @@ export default function Home() {
       <DottedSurface />
 
       {/* Hero Section */}
-      <section className="relative flex-1 flex flex-col items-center justify-center text-center px-4 pt-32 pb-24 overflow-hidden z-10">
+      <section className="relative flex-1 flex flex-col items-center justify-center px-4 pt-32 pb-24 overflow-hidden z-10 w-full max-w-6xl mx-auto">
         {/* Decorative background glow circles */}
         <div className="absolute top-0 -z-10 h-full w-full pointer-events-none">
           <div className="absolute bottom-auto left-auto right-0 top-0 h-[600px] w-[600px] -translate-x-[20%] translate-y-[10%] rounded-full bg-[rgba(139,92,246,0.18)] opacity-40 blur-[120px]"></div>
           <div className="absolute bottom-auto left-0 right-auto top-0 h-[600px] w-[600px] translate-x-[20%] translate-y-[10%] rounded-full bg-[rgba(59,130,246,0.18)] opacity-40 blur-[120px]"></div>
         </div>
 
-        <div className="inline-flex items-center rounded-full border border-purple-500/20 px-4 py-1.5 text-sm font-medium transition-all bg-purple-500/10 text-purple-400 dark:text-purple-300 mb-8 backdrop-blur-md shadow-lg shadow-purple-500/5 animate-pulse">
-          <Bot className="w-4 h-4 mr-2" />
-          Powered by DeepMind AI & GPT-4o
-        </div>
-        
-        <h1 className="text-5xl md:text-8xl font-black tracking-tight max-w-5xl mb-6 text-foreground leading-[1.05]">
-          The ultimate <span className="bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">AI-Powered</span> Talent Economy.
-        </h1>
-        
-        <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mb-12 leading-relaxed font-normal">
-          BountyForge isn't just a bounty platform. We combine GitHub, Upwork, and AI into one unified ecosystem. Automate code reviews, detect fraud, and build a world-class engineering reputation.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto z-10 justify-center">
-          <Link href="/bounties" className={cn(buttonVariants({ size: "lg" }), "gap-2 text-lg h-14 px-8 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/35 border-0 transition-transform hover:scale-102 duration-200")}>
-            Explore Open Bounties <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link href="/signin" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "gap-2 text-lg h-14 px-8 bg-background/40 hover:bg-background/80 backdrop-blur-md border-white/10 rounded-2xl transition-transform hover:scale-102 duration-200")}>
-            <GitBranch className="w-5 h-5 text-purple-400" /> Sign In
-          </Link>
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 text-center lg:text-left w-full mb-16">
+          <div className="flex-1 flex flex-col items-center lg:items-start max-w-2xl">
+            <div className="inline-flex items-center rounded-full border border-purple-500/20 px-4 py-1.5 text-sm font-medium transition-all bg-purple-500/10 text-purple-400 dark:text-purple-300 mb-8 backdrop-blur-md shadow-lg shadow-purple-500/5 animate-pulse">
+              <Bot className="w-4 h-4 mr-2" />
+              Powered by DeepMind AI & GPT-4o
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 text-foreground leading-[1.05]">
+              The ultimate <span className="bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">AI-Powered</span> Talent Economy.
+            </h1>
+            
+            <p className="text-xl text-muted-foreground mb-10 leading-relaxed font-normal">
+              BountyForge isn't just a bounty platform. We combine GitHub, Upwork, and AI into one unified ecosystem. Automate code reviews, detect fraud, and build a world-class engineering reputation.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto z-10 justify-center lg:justify-start">
+              <Link href="/bounties" className={cn(buttonVariants({ size: "lg" }), "gap-2 text-lg h-14 px-8 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/35 border-0 transition-transform hover:scale-102 duration-200")}>
+                Explore Open Bounties <ArrowRight className="w-5 h-5" />
+              </Link>
+              <Link href="/signin" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "gap-2 text-lg h-14 px-8 bg-background/40 hover:bg-background/80 backdrop-blur-md border-white/10 rounded-2xl transition-transform hover:scale-102 duration-200")}>
+                <GitBranch className="w-5 h-5 text-purple-400" /> Sign In
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex-1 w-full flex items-center justify-center relative mt-10 lg:mt-0">
+            <div className="absolute -inset-10 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full blur-3xl opacity-60"></div>
+            <FloatingSphere className="w-full max-w-[360px] md:max-w-[420px] z-10" />
+          </div>
         </div>
 
         {/* Mock Stats / Social Proof */}
-        <div className="mt-24 pt-12 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl w-full text-center">
+        <div className="pt-12 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-8 w-full text-center">
           <div className="glass-card p-6 rounded-2xl">
             <div className="text-4xl font-extrabold text-foreground tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">10k+</div>
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mt-2">Developers</div>
